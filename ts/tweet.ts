@@ -1,21 +1,35 @@
 class Tweet {
 	private text:string;
+    private prompt:string;
 	time:Date;
 
 	constructor(tweet_text:string, tweet_time:string) {
         this.text = tweet_text;
 		this.time = new Date(tweet_time);//, "ddd MMM D HH:mm:ss Z YYYY"
+        this.prompt = this.text.toLowerCase();
 	}
 
 	//returns either 'live_event', 'achievement', 'completed_event', or 'miscellaneous'
     get source():string {
         //TODO: identify whether the source is a live event, an achievement, a completed event, or miscellaneous.
-        return "unknown";
+		if(this.prompt.startsWith("just completed") || this.prompt.startsWith("just posted")){
+			return "completed_event";
+		} else if (this.prompt.startsWith("watch my")){
+			return "live_event";
+		} else if (this.prompt.startsWith("achieved")){
+			return "achievement";
+		} else {
+			return "miscellaneous";
+		}
+		
     }
 
     //returns a boolean, whether the text includes any content written by the person tweeting.
     get written():boolean {
         //TODO: identify whether the tweet is written
+        if(!this.prompt.includes("@runkeeper")){
+			return true;
+		}
         return false;
     }
 
