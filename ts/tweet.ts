@@ -11,7 +11,6 @@ class Tweet {
 
 	//returns either 'live_event', 'achievement', 'completed_event', or 'miscellaneous'
     get source():string {
-        //TODO: identify whether the source is a live event, an achievement, a completed event, or miscellaneous.
 		if(this.prompt.startsWith("just completed") || this.prompt.startsWith("just posted")){
 			return "completed_event";
 		} else if (this.prompt.startsWith("watch my")){
@@ -26,7 +25,6 @@ class Tweet {
 
     //returns a boolean, whether the text includes any content written by the person tweeting.
     get written():boolean {
-        //TODO: identify whether the tweet is written
         if(!this.prompt.includes("@runkeeper")){
 			return true;
 		}
@@ -45,16 +43,35 @@ class Tweet {
         if (this.source != 'completed_event') {
             return "unknown";
         }
-        //TODO: parse the activity type from the text of the tweet
-        return "";
+        let ind = Math.max(
+            this.prompt.lastIndexOf("km"),
+            this.prompt.lastIndexOf("mi")
+        );
+        if(ind == -1){
+            return "unknown";
+        }
+        let next_space = this.prompt.substring(ind + 3).indexOf(" ");
+        return this.prompt.substring(ind+3, next_space+ind+3);
     }
 
     get distance():number {
         if(this.source != 'completed_event') {
             return 0;
         }
-        //TODO: prase the distance from the text of the tweet
-        return 0;
+        let kms = this.prompt.lastIndexOf("km");
+        let mi = this.prompt.lastIndexOf("mi")
+        let end = this.prompt.length;
+        if(kms == -1){
+            end = mi;
+        } else {
+            end = kms;
+        }
+        let distance_string = this.prompt.substring(this.prompt.lastIndexOf("just completed a") + 16, end);
+        let real_dist = 0;
+        if(kms != -1){
+            real_dist = parseFloat(distance_string)/1.609
+        }
+        return real_dist;
     }
 
     getHTMLTableRow(rowNumber:number):string {

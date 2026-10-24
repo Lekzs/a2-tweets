@@ -8,7 +8,14 @@ function parseTweets(runkeeper_tweets) {
 	tweet_array = runkeeper_tweets.map(function(tweet) {
 		return new Tweet(tweet.text, tweet.created_at);
 	});
-
+	let map = new Map();
+	for(i = 0; i < tweet_array.length; i++){
+		activity = tweet_array[i].activityType;
+		if(activity != "unknown"){
+			let currcount = map.get(activity) || 0;
+			map.set(activity, currcount + 1);
+		}
+	}
 	//TODO: create a new array or manipulate tweet_array to create a graph of the number of tweets containing each type of activity.
 
 	activity_vis_spec = {
