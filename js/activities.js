@@ -29,6 +29,7 @@ function parseTweets(runkeeper_tweets) {
 	// 	}
 	// })
 
+	console.log(map);
 	let top3 = [...map.entries()]
     .sort((a, b) => b[1] - a[1])
     .slice(0, 3);

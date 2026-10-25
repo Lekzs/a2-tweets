@@ -20,58 +20,63 @@ class Tweet {
 		} else {
 			return "miscellaneous";
 		}
-		
     }
 
     //returns a boolean, whether the text includes any content written by the person tweeting.
     get written():boolean {
-        if(!this.prompt.includes("@runkeeper")){
-			return true;
-		}
-        return false;
+        console.log("text: "+ this.writtenText);
+        return this.writtenText.length > 0;
     }
 
     get writtenText():string {
-        if(!this.written) {
-            return "";
-        }
-        //TODO: parse the written text from the tweet
-        return "";
+        let text = this.prompt;
+
+        // remove URLs and hashtags
+        text = text.replace(/https?:\/\/\S+/gi, '');
+        text = text.replace(/#runkeeper/gi, '');
+
+        // remove "just completed a [distance] [activity]" up to @runkeeper, "with", or "-"
+        text = text.replace(/(?:just\s+)?(?:completed|posted)\s+a\s+.*?(?:@runkeeper|with|-)/gi, '');
+
+        // clean up
+        text = text.replace(/check\s+it\s+out!?/gi, '');
+        text = text.replace(/@runkeeper/gi, '');
+        
+        // clean anything left over
+        return text.replace(/^[.\s:-]+/, '').trim();
     }
 
     get activityType():string {
-        if (this.source != 'completed_event') {
+        if (this.source !== 'completed_event') {
             return "unknown";
         }
-        let ind = Math.max(
-            this.prompt.lastIndexOf("km"),
-            this.prompt.lastIndexOf("mi")
-        );
-        if(ind == -1){
-            return "unknown";
+        // use regex to match
+        const distanceMatch = /(?:completed|posted) a \d+(?:\.\d+)?\s*(?:km|mi)\s+([a-z\s]+?)(?=\s+(?:with|in|-|@|http|#|$))/i.exec(this.prompt);
+        if (distanceMatch) {
+            return distanceMatch[1].trim().toLowerCase();
         }
-        let next_space = this.prompt.substring(ind + 3).indexOf(" ");
-        return this.prompt.substring(ind+3, next_space+ind+3);
+        return "unknown";
     }
 
     get distance():number {
         if(this.source != 'completed_event') {
             return 0;
         }
-        let kms = this.prompt.lastIndexOf("km");
-        let mi = this.prompt.lastIndexOf("mi")
-        let end = this.prompt.length;
-        if(kms == -1){
-            end = mi;
-        } else {
-            end = kms;
+        // regex
+        const match = /(?:completed|posted) a (\d+(?:\.\d+)?)\s*(km|mi)\b/i.exec(this.prompt);
+        if (!match) {
+            return 0;
         }
-        let distance_string = this.prompt.substring(this.prompt.lastIndexOf("just completed a") + 16, end);
-        let real_dist = 0;
-        if(kms != -1){
-            real_dist = parseFloat(distance_string)/1.609
+
+        const val = parseFloat(match[1]);
+        const unit = match[2].toLowerCase();
+
+        if (isNaN(val)) {
+            return 0;
         }
-        return real_dist;
+
+        // convert or just return
+        return unit === 'km' ? val / 1.609 : val;
     }
 
     getHTMLTableRow(rowNumber:number):string {
